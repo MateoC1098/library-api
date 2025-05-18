@@ -41,13 +41,18 @@ export class LibroService {
     if (fechaLibro > hoy)
       throw new BusinessLogicException('La fecha de publicación no puede ser posterior a la fecha actual', BusinessError.PRECONDITION_FAILED);
     
-    return await this.libroRepository.save({ ...existing, ...libro });
+    existing.titulo = libro.titulo;
+    existing.autor = libro.autor;
+    existing.fechaPublicacion = libro.fechaPublicacion;
+    existing.isbn = libro.isbn;
+    
+    return await this.libroRepository.save(existing);
   }
 
   async delete(id: string) {
     const libro = await this.libroRepository.findOne({ where: { id } });
     if (!libro)
-      throw new BusinessLogicException('The book with the given id was not found', BusinessError.NOT_FOUND);
+      throw new BusinessLogicException('No se encontro el libro con el id dado', BusinessError.NOT_FOUND);
     await this.libroRepository.remove(libro);
   }
 }

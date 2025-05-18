@@ -39,7 +39,9 @@ export class BibliotecaService {
     if (horaApertura >= horaCierre)
       throw new BusinessLogicException('La hora de apertura debe ser anterior a la hora de cierre', BusinessError.PRECONDITION_FAILED);
     
-    return await this.bibliotecaRepository.save({ ...persistedLibrary, ...biblioteca });
+    biblioteca.id = id;
+    
+    return await this.bibliotecaRepository.save(biblioteca);
   }
 
   async delete(id: string) {

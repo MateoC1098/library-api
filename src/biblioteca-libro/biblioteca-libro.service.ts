@@ -54,19 +54,29 @@ export class BibliotecaLibroService {
   }
 
   async associateBooksToLibrary(bibliotecaId: string, libros: LibroEntity[]): Promise<BibliotecaEntity> {
-    const biblioteca = await this.bibliotecaRepository.findOne({ where: { id: bibliotecaId }, relations: ['libros'] });
-    if (!biblioteca)
-      throw new BusinessLogicException('La biblioteca con el id dado no fue encontrada', BusinessError.NOT_FOUND);
+  const biblioteca = await this.bibliotecaRepository.findOne({ where: { id: bibliotecaId }, relations: ['libros'] });
+  if (!biblioteca)
+    throw new BusinessLogicException('La biblioteca con el id dado no fue encontrada', BusinessError.NOT_FOUND);
 
-    for (let i = 0; i < libros.length; i++) {
-      const libro = await this.libroRepository.findOne({ where: { id: libros[i].id } });
-      if (!libro)
-        throw new BusinessLogicException(`El libro con id ${libros[i].id} no fue encontrado`, BusinessError.NOT_FOUND);
-    }
+  const librosActualizados: LibroEntity[] = [];
 
-    biblioteca.libros = libros;
-    return await this.bibliotecaRepository.save(biblioteca);
+  for (const libro of libros) {
+    const libroExistente = await this.libroRepository.findOne({ where: { id: libro.id } });
+    if (!libroExistente)
+      throw new BusinessLogicException(`El libro con id ${libro.id} no fue encontrado`, BusinessError.NOT_FOUND);
+
+    libroExistente.titulo = libro.titulo;
+    libroExistente.autor = libro.autor;
+    libroExistente.fechaPublicacion = libro.fechaPublicacion;
+    libroExistente.isbn = libro.isbn;
+
+    await this.libroRepository.save(libroExistente);
+    librosActualizados.push(libroExistente);
   }
+
+  biblioteca.libros = librosActualizados;
+  return await this.bibliotecaRepository.save(biblioteca);
+}
 
   async deleteBookFromLibrary(bibliotecaId: string, libroId: string): Promise<void> {
     const libro = await this.libroRepository.findOne({ where: { id: libroId } });
